@@ -1,0 +1,53 @@
+package com.chaoscube.network;
+
+import com.chaoscube.ChaosCubeMod;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+
+public class ModNetwork {
+    // Server → Client: sync music state
+    public static final Identifier SYNC_MUSIC = Identifier.of(ChaosCubeMod.MOD_ID, "sync_music");
+    // Client → Server: set URL
+    public static final Identifier SET_URL = Identifier.of(ChaosCubeMod.MOD_ID, "set_url");
+
+    public static void register() {
+        // Server receives SET_URL from client
+        ServerPlayNetworking.registerGlobalReceiver(SET_URL, (server, player, handler, buf, responseSender) -> {
+            BlockPos pos = buf.readBlockPos();
+            String url = buf.readString(512);
+            boolean play = buf.readBoolean();
+
+            server.execute(() -> {
+                net.minecraft.block.entity.BlockEntity be =
+                        player.getWorld().getBlockEntity(pos);
+                if (be instanceof com.chaoscube.blockentity.ChaosCubeBlockEntity cube) {
+                    if (play && !url.isEmpty()) {
+                        cube.setUrlAndPlay(url, player.getWorld());
+                    } else {
+                        cube.stopPlaying(player.getWorld(), pos);
+                    }
+                }
+            });
+        });
+    }
+
+    public static void sendMusicSync(ServerWorld world, BlockPos pos,
+                                      String url, boolean playing, int range) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeBlockPos(pos);
+        buf.writeString(url, 512);
+        buf.writeBoolean(playing);
+
+        Vec3d center = Vec3d.ofCenter(pos);
+        for (ServerPlayerEntity player : PlayerLookup.around(world, center, range * 2)) {
+            ServerPlayNetworking.send(player, SYNC_MUSIC, buf);
+        }
+    }
+}

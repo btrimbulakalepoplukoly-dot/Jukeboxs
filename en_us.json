@@ -1,0 +1,43 @@
+package com.chaoscube.screen;
+
+import com.chaoscube.blockentity.ChaosCubeBlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
+
+public class ChaosCubeScreenHandler extends ScreenHandler {
+
+    private final ChaosCubeBlockEntity blockEntity;
+
+    // Server-side constructor
+    public ChaosCubeScreenHandler(int syncId, PlayerInventory inv, ChaosCubeBlockEntity be) {
+        super(ModScreenHandlers.CHAOS_CUBE_HANDLER, syncId);
+        this.blockEntity = be;
+    }
+
+    // Client-side constructor (called via network)
+    public ChaosCubeScreenHandler(int syncId, PlayerInventory inv,
+                                   net.minecraft.network.PacketByteBuf buf) {
+        this(syncId, inv, getBlockEntityFromBuf(buf, inv));
+    }
+
+    private static ChaosCubeBlockEntity getBlockEntityFromBuf(
+            net.minecraft.network.PacketByteBuf buf, PlayerInventory inv) {
+        net.minecraft.util.math.BlockPos pos = buf.readBlockPos();
+        net.minecraft.block.entity.BlockEntity be =
+                inv.player.getWorld().getBlockEntity(pos);
+        if (be instanceof ChaosCubeBlockEntity cube) return cube;
+        throw new IllegalStateException("No ChaosCubeBlockEntity at " + pos);
+    }
+
+    public ChaosCubeBlockEntity getBlockEntity() { return blockEntity; }
+
+    @Override
+    public ItemStack quickMove(PlayerEntity player, int slot) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public boolean canUse(PlayerEntity player) { return true; }
+}

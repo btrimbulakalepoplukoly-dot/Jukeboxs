@@ -1,0 +1,35 @@
+package com.chaoscube.block;
+
+import com.chaoscube.ChaosCubeMod;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroups;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.Identifier;
+
+public class ModBlocks {
+    public static final Block CHAOS_CUBE = new ChaosCubeBlock(
+            AbstractBlock.Settings.create()
+                    .strength(3.0f, 6.0f)
+                    .sounds(BlockSoundGroup.METAL)
+                    .luminance(state -> 7)
+                    .nonOpaque()
+    );
+
+    public static void register() {
+        Identifier id = Identifier.of(ChaosCubeMod.MOD_ID, "chaos_cube");
+
+        Registry.register(Registries.BLOCK, id, CHAOS_CUBE);
+        Registry.register(Registries.ITEM, id,
+                new BlockItem(CHAOS_CUBE, new Item.Settings()));
+
+        // Add to Redstone tab in creative inventory
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries ->
+                entries.add(CHAOS_CUBE));
+    }
+}

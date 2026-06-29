@@ -1,0 +1,20 @@
+package com.chaoscube.screen;
+
+import com.chaoscube.ChaosCubeMod;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.util.Identifier;
+
+public class ModScreenHandlers {
+    public static ScreenHandlerType<ChaosCubeScreenHandler> CHAOS_CUBE_HANDLER;
+
+    public static void register() {
+        CHAOS_CUBE_HANDLER = Registry.register(
+                Registries.SCREEN_HANDLER,
+                Identifier.of(ChaosCubeMod.MOD_ID, "chaos_cube"),
+                new ScreenHandlerType<>(ChaosCubeScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
+        );
+    }
+}
